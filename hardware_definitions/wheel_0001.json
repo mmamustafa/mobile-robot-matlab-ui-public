@@ -5,7 +5,7 @@
     "shape": {
         "type": "cylinder",
         "color": "green",
-        "diameter": 0.089,
+        "diameter": 0.095,
         "z_limits": [-0.003, 0.003]
     }
 }

@@ -192,8 +192,12 @@ classdef RobotClass < dynamicprops
                 component_to_robot_world_transfromation(obj, comp_id)
             % Find transfromation from component reference frame to robot
             % and world reference frames.
-            % Input: component ID in components tree
+            % Input: component ID (ind or label) in components tree
             
+            % Find comp_id
+            if isa(comp_id, 'char')
+                comp_id = obj.components_tree.label_to_id_map(comp_id);
+            end
             % Compute component-to-robot transformation
             T_comp_robot = obj.components_tree.get(comp_id).transformation;
             p = obj.components_tree.getparent(comp_id);   % parent
@@ -336,7 +340,29 @@ classdef RobotClass < dynamicprops
                 use_simulation = isfield(parameters, 'world');
                 if use_real_robot
                     if use_lidar_2d
-                        error('To be added when communication class is complete...')
+                        % **** THIS FUNCTION ONLY WORKS WITH RPLIDAR *****
+                        % TODO: Make it more general to other sensors.
+                        [done, value] = obj.get_request(component.label);
+                        if done
+                            % Fix depth
+                            depth = value(1:end-1) / 1000;  % convert into meters
+                            depth = circshift(depth, [0, -floor((length(value) - 1) / 2)]);  % start at -180 deg
+                            depth(depth > component.max_range | depth < 0.1) = inf; % handle invalid values
+                            % Compute angle resoluion
+                            angle_resolution = 2 * pi / length(depth);
+                            % Convert angles to radian if necessary
+                            try
+                                if strcmp(component.angle_unit, 'degree')
+                                    angle_resolution = rad2deg(angle_resolution);
+                                end
+                            catch
+                            end
+                        else
+                            angle_resolution = 1;
+                            depth = inf(1, component.angle_span / angle_resolution);
+                        end
+                        component.set_property('depth', depth);
+                        component.set_property('angle_resolution', angle_resolution);
                     elseif use_sonar
                         [~, value] = obj.get_request(component.label);
                         component.set_property('depth', value)
@@ -458,13 +484,16 @@ classdef RobotClass < dynamicprops
                 if use_real_robot
                     [~, value] = obj.get_request(component.label);
                     component.set_property('value', value)
+                    [~, unit_readings] = obj.get_request([component.label '_raw']);
+                    component.set_property('unit_readings', unit_readings)
                 elseif use_simulation
                     % Compute component transfromation to world frame
                     [~, T_comp_world] = obj.component_to_robot_world_transfromation(component_id);
                     % Simulate reflectance sensor
-                    value = simulate_reflectance(component, parameters.world, T_comp_world);
+                    [value, unit_readings] = simulate_reflectance(component, parameters.world, T_comp_world);
                     % Add as object property (create new one if necessary)
                     component.set_property('value', value)
+                    component.set_property('unit_readings', unit_readings)
                 else
                     error(['Cannot update component ' component.type '! Connect to real robot or provide world for simulation.'])
                 end
@@ -586,6 +615,7 @@ classdef RobotClass < dynamicprops
                             sensor_readings(component.label) = component.omega;
                         elseif strcmp(component.type, 'reflectance')
                             sensor_readings(component.label) = component.value;
+                            sensor_readings([component.label '_raw']) = component.unit_readings;
                         end
                     end
                 end
@@ -700,8 +730,12 @@ classdef RobotClass < dynamicprops
                     label_in_firmware = 'VelocityEncL';
                 elseif strcmpi(component_label, 'sonar')
                     label_in_firmware = 'SonarDistance';
+                elseif strcmpi(component_label, 'lidar')
+                    label_in_firmware = 'LidarScan';
                 elseif strcmpi(component_label, 'reflectance')
                     label_in_firmware = 'LineSensor';
+                elseif strcmpi(component_label, 'reflectance_raw')
+                    label_in_firmware = 'LineSensorRaw';
                 end
                 
                 msg = GetTopicMsg(obj.com_data, label_in_firmware);

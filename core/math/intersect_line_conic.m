@@ -60,8 +60,8 @@ if strcmp(mode, 'equal')
     t1 = (-b_t + sqrt_det) ./ (2 * a_t);
     t2 = (-b_t - sqrt_det) ./ (2 * a_t);
     % Find intersection points
-    p1 = line_pd(1:2, :) + line_pd(3:4, :) .* repmat(t1, 2, 1);
-    p2 = line_pd(1:2, :) + line_pd(3:4, :) .* repmat(t2, 2, 1);
+    p1 = line_pd(1:2, :) + bsxfun(@times, line_pd(3:4, :), t1);
+    p2 = line_pd(1:2, :) + bsxfun(@times, line_pd(3:4, :), t2);
     % Consider cases of no intersection --> inf
     ind = detr < 0;
     p1(:, ind) = inf;

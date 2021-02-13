@@ -22,7 +22,7 @@ if ~is_rotation_matrix(R)
     R = get_nearest_rotation_matrix(R);
 end
 % Make sure cos(theta) is EXACTLY in [-1, 1] to avoid any numerical issues
-cos_theta = max(min((trace(R) - 1) / 2, 1), -1);
+cos_theta = clip((trace(R) - 1) / 2, -1, 1);
 % Consider different cases
 if is_close(cos_theta, 1)
     % theta = 0

@@ -155,23 +155,24 @@ handles.session_uitextedit2 = uicontrol( 'Style', 'edit', 'Parent', htab1, ...
     'HorizontalAlignment', 'center', 'Position', [110 10 100 20],...
     'Callback', str2func('@(hObject,eventdata)mobile_robot_platform(''session_uitextedit2_EdittedCallback'',hObject,eventdata,guidata(hObject))'));
 
+%{
 % Add checkbox (show robot estimate path)
 handles.session_uicheckbox1 = uicontrol( 'Style', 'check', 'Parent', htab1, ...
     'String', 'Show robot path (estimate)',...
     'Units', 'pixels', 'FontSize', font_size, 'HorizontalAlignment', 'left',...
     'Position', [250 10 200 20]);
-
+%}
 % Add checkbox (show robot true path)
 handles.session_uicheckbox2 = uicontrol( 'Style', 'check', 'Parent', htab1, ...
     'String', 'Show robot path (true)',...
     'Units', 'pixels', 'FontSize', font_size, 'HorizontalAlignment', 'left',...
-    'Position', [250 30 200 20]);
+    'Position', [250 10 200 20]);
 
 % Add checkbox (show robot range measurements)
 handles.session_uicheckbox3 = uicontrol( 'Style', 'check', 'Parent', htab1, ...
     'String', 'Show range measurements',...
     'Units', 'pixels','FontSize', font_size, 'HorizontalAlignment', 'left',...
-    'Position', [250 50 200 20]);
+    'Position', [250 30 200 20]);
 
 % Add checkbox (connect to physical robot)
 handles.session_uicheckbox4 = uicontrol( 'Style', 'check', 'Parent', htab1, ...
@@ -452,6 +453,7 @@ my_alg('tic') = tic;            % updates everytime step and can be used in time
 my_alg('is_first_time') = true; % flag changes to false after the first time step.
 my_alg('is_done') = false;      % flag to stop simulation
 my_alg('dc_motor_signal_mode') = 'omega_setpoint';
+my_alg('plots') = {};           % List of commands to plot in the main figure
 
 %% Connect to physical robot if possible
 if get(handles.session_uicheckbox4, 'Value')
@@ -487,11 +489,11 @@ try
         
         %% (2) Compute change in time for robot update (simulation)
         try
-            dt = toc(t_last_robot_upate);
+            dt = toc(t_last_robot_update);
         catch
             dt = 0;
         end
-        t_last_robot_upate = tic;       % reset stopwatch
+        t_last_robot_update = tic;       % reset stopwatch
 
         %% (3) Move robot and update all sensors
         sensor_readings = handles.robot.update(dt, handles.world, 'kinematics',...
@@ -535,7 +537,16 @@ try
             if get(handles.session_uicheckbox2, 'Value')
                 handles.h_true_path = plot(true_path(1, :), true_path(2, :), 'g--', 'LineWidth', 2);
             end
-            % Plot estimated robot path...
+            
+            % Plot in my_alg
+            my_alg_plots = my_alg('plots');
+            for i = 1:length(my_alg_plots)
+                try
+                    handles.h_my_alg_plots = [handles.h_my_alg_plots;...
+                        eval(my_alg_plots{i})'];
+                catch
+                end
+            end
             
             % Update robot pose in robot table
             s1 = sprintf([num_format ', '] , pose_2d');
@@ -546,6 +557,7 @@ try
         
         %% (7) Update `my_alg` map
         if my_alg('is_first_time'),     my_alg('is_first_time') = false;	end
+        my_alg('plots') = {};       % reset plots
     end
 catch ME
     disp(['Error in GUI main loop: ' ME.message])
@@ -587,7 +599,7 @@ set(handles.session_uitextedit2, 'Enable', state)   % Frame rate
 
 function handles = delete_dynamic_plot_handles(handles)
 % Delete plot handles for: exteroceptive measurements, true path,
-% estimated path
+% and any plot added by the user
 
 try
     delete(handles.h_s)     % exteroceptive measurements
@@ -598,4 +610,9 @@ try
     delete(handles.h_true_path)     % robot true path
 catch
     handles.h_true_path = [];
+end
+try
+    delete(handles.h_my_alg_plots)  % plots in my_alg
+catch
+    handles.h_my_alg_plots = [];
 end

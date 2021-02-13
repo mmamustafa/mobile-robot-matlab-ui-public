@@ -6,7 +6,8 @@
 %  only works with polygon shapes.
 % 
 %  Usage
-%    E_normalized = SIMULATE_REFLECTANCE(sensor, world, T_sensor_world);
+%    [E_normalized, unit_readings] = ...
+%        SIMULATE_REFLECTANCE(sensor, world, T_sensor_world);
 % 
 %  Parameters
 %    sensor          (1, 1)  ComponentClass object with type `reflectance`
@@ -20,6 +21,9 @@
 %                            respect to their position in the sensor local
 %                            frame. This expectation is normalized such
 %                            that range is [-1, 1].
+%    unit_readings	(1, n)  Individual unit readings with n = num_units.
+%                            The range is either [0, 1], or if available in
+%                            the JSON-file [min_value, max_value].
 % 
 %  Implementation
 %    Mohamed Mustafa, August 2020

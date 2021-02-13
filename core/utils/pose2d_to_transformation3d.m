@@ -12,7 +12,7 @@
 %    pose2d              (3, 1)  2D pose in xy-plane.
 % 
 %  Returns
-%    transformation3d    (4, 4)  RobotClass object.
+%    transformation3d    (4, 4)  Transformation matrix of robot 3D pose.
 % 
 %  Implementation
 %    Mohamed Mustafa, September 2020

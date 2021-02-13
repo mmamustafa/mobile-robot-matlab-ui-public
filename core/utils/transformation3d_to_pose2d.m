@@ -9,7 +9,7 @@
 %    pose2d = TRANSFORMATION3D_TO_POSE2D(transformation3d);
 % 
 %  Parameters
-%    transformation3d    (4, 4)  RobotClass object.
+%    transformation3d    (4, 4)  Transformation matrix of robot 3D pose.
 % 
 %  Returns
 %    pose2d              (3, 1)  2D pose in xy-plane.
