@@ -38,8 +38,9 @@
 % 
 %  Parameters
 %    robot    	(1, 1)  RobotClass object.
-%    pose_old	(3, 1)  Robot old pose in 2D world (x, y, th) with respect
-%                        to  world reference frame.
+%    pose_old	(3, k)  Robot old pose in 2D world (x, y, th) with respect
+%                        to  world reference frame. k is the number of poses
+%                        to update.
 %    d_t         (1, 1)  Time step at which wheel angular velocities are
 %                        assumed constant.
 %    omegas_map	(1, 1)  containers.Map object (hash table) with keys
@@ -51,19 +52,20 @@
 %                        wheels are assigned 0 angular velocities.
 % 
 %  Returns
-%    pose_new  	(3, 1)  Robot new pose in 2D world (x, y, th) with
-%                        resepect to  world reference frame.
-%    Dp_p     	(3, 3)  Jacobian of pose_new wrt pose_old (x, y, th).
-%    Dp_w        (3, n)  Jacobian of pose_new wrt robot_velocities
-%                        (v_x, v_y, w), where n is the number of valid
-%                        active wheels.
-%    omegas_rhr  (n, 1)  Angular velocities of all valid active wheels (even
-%                        those that are not in omegas_map) in rhr rotation
-%                        convension. This output is congruent with Dp_w in
-%                        terms of entries order (this order is not present
-%                        in omegas_map becuase it's a hash table), and both
-%                        are needed to compute the motion additive noise
-%                        covariance in localization.
+%    pose_new    (3, k)      Robot new pose in 2D world (x, y, th) with
+%                            resepect to  world reference frame.
+%    Dp_p        (3, 3, k)   Jacobian of pose_new wrt pose_old (x, y, th).
+%    Dp_w        (3, n, k)   Jacobian of pose_new wrt robot_velocities
+%                            (v_x, v_y, w), where n is the number of valid
+%                            active wheels.
+%    omegas_rhr  (n, 1)      Angular velocities of all valid active wheels
+%                            (even those that are not in omegas_map) in rhr
+%                            rotation convension. This output is congruent
+%                            with Dp_w in terms of entries order (this order
+%                            is not present in omegas_map becuase it's a
+%                            hash table), and both are needed to compute the
+%                            motion additive noise covariance in
+%                            localization.
 % 
 %  Reference
 %    Introduction to Autonomous Mobile Robots (Chapter 3)

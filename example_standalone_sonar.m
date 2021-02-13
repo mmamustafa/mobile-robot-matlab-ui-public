@@ -6,7 +6,7 @@ addpath(genpath(pwd))
 % Create Robot (robot with reflectance,sonar and servo motor)
 R1 = RobotClass('json_fname', 'puzzle_bot_0002.json');
 % Uncomment below for using the real robot (it's simulation otherwise)
-R1.connect('192.168.1.1');
+% R1.connect('192.168.1.1');
 
 % Create World
 W = WorldClass('fname', 'world_wall.json');
@@ -24,6 +24,8 @@ t_start = tic;
 t_outer_loop = tic;
 t_inner_loop = tic;
 
+%% Initialise data
+
 % Initialise motor angular velocity controllers
 control_right = MotorControl();
 control_left = MotorControl();
@@ -32,14 +34,12 @@ control_left = MotorControl();
 wR_set = 0;
 wL_set = 0;
 
+% Wheel angular velocities from the encoders
 wR = 0;
 wL = 0;
 
-% desired wheel velocity 
-w_desired = 5;
-
-% Proportional gain for following the wall
-K = 5;
+% Sonar distance setpoint
+d_set = 1;
 
 while toc(t_start)<TotalTime
     
@@ -49,18 +49,14 @@ while toc(t_start)<TotalTime
     if(dt>=sampling_outer) % execute code when desired outer loop sampling time is reached
         t_outer_loop = tic;
                                 
-        sonar_dist = sensor_readings('sonar');
+        %% Add your distance controller here %%%%%%%%%%%%%%%%%%%%%
+        sonar_dist = sensor_readings('sonar'); % Read sonar distance from robot
+  
         
-        % If a wall is found less than 1m away from the robot then follow it
-        if sonar_dist < 1
-            err_dist = 0.5 - sonar_dist;  % hold a constant distance of 0.5m to the wall
-            wR_set = w_desired - K*err_dist;
-            wL_set = w_desired + K*err_dist;
-        else
-            wR_set = 0;
-            wL_set = 0;
-        end
+        
+        %% End %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 
+        
         % Plot all
         try
             delete([h_r, h_s])
@@ -74,13 +70,19 @@ while toc(t_start)<TotalTime
     dt = toc(t_inner_loop);
     if(dt>=sampling_inner) % execute code when desired inner loop sampling time is reached
         t_inner_loop = tic;
-                
-        uR = control_right.Control(wR_set-wR,dt);
-        uL = control_left.Control(wL_set-wL,dt);
         
+        %% Replace with your PI controllers here %%%%%%%%%%%%%%%%
+        uR = control_right.Control(wR_set,wR,dt);
+        uL = control_left.Control(wL_set,wL,dt);
+        
+        
+        %% End %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        
+        %% Do not edit this section
         % Update robot in this order: actuators, pose (in simulation), sensors
         % Set the servo angle to 90 degrees to the left, 1.57 radians (where the wall should be)
-        actuator_signals = {'right motor', uR, 'left motor', uL,'servo motor',1};
+        actuator_signals = {'right motor', uR, 'left motor', uL,'servo motor',0};
         sensor_readings = R1.update(dt, W, 'kinematics', 'voltage_pwm', actuator_signals{:});
         
         % Update encoder velocity readings

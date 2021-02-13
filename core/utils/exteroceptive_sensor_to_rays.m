@@ -11,6 +11,8 @@
 %                            If this parameter is not present it's replaced
 %                            by sensor.transformation
 %    dimension       (1, 1)  Rays dimension (optional). Possible values: {2, 3}
+%    n_angles        (1, 1)  Number of points to generate for Sonar case
+%                            only.
 % 
 %  Returns
 %    p               (d, 1)  Rays starting point where d = dimesnion

@@ -1,6 +1,6 @@
 function P = homog2cart(P)
 % -------------------------------------------------------------------------
-% CART2HOMOG    converts coordinates from homogeneous to cartesian in
+% HOMOG2CART    converts coordinates from homogeneous to cartesian in
 % d-dimensional space.
 %
 % Usage
@@ -16,7 +16,6 @@ function P = homog2cart(P)
 %   Mohamed Mustafa, July 2010
 % -------------------------------------------------------------------------
 
-D = size(P,1);                  % dimension of the points
-w = repmat(P(end,:),D-1,1);     % last element of each point in homogeneous
-P = P(1:D-1,:)./w;
+d = size(P,1);                  % dimension of the points
+P = bsxfun(@rdivide, P(1:d-1, :), P(end, :));
 end

@@ -17,8 +17,7 @@ function [v_unit, v_len] = unit_vector(v)
 %   Mohamed Mustafa, July 2020
 % -------------------------------------------------------------------------
 
-s = size(v);
 v_len = sqrt(sum(v.^2, 1));
-v_unit = v ./ repmat(v_len, [s(1), ones(1, length(s) - 1)]);
+v_unit = bsxfun(@rdivide, v, v_len);
 v_unit(~isfinite(v_unit)) = 0;      % for vectors of 0 euclidean length.
 end

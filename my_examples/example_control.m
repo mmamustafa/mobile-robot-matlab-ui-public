@@ -47,28 +47,26 @@ if time < my_alg('t_finish')    % Check for algorithm finish time
     
     dt = toc(my_alg('t_loop'));
     
-    if dt>my_alg('t_sampling')  % 
+    if dt>my_alg('t_sampling')  % execute code when desired sampling time is reached
         my_alg('t_loop') = tic;
 
+        %% Add your loop code here (replace with your controller)%%%%%%%%%
         % Right wheel controller %%%%%%%%%%%%%%%%%%%%
-        errR = my_alg('wR_set') - my_alg('right encoder');
-        
-        uR = my_alg('control_right').Control(errR,dt);
+        uR = my_alg('control_right').Control(my_alg('wR_set'),my_alg('right encoder'),dt);
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         % Left wheel controller %%%%%%%%%%%%%%%%%%%%%
-        errL = my_alg('wL_set') - my_alg('left encoder');
-        
-        uL = my_alg('control_left').Control(errL,dt);
+        uL = my_alg('control_left').Control(my_alg('wL_set'),my_alg('left encoder'),dt);
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         % Apply pwm signal
         my_alg('right motor') = uR;
         my_alg('left motor') = uL;
 
+        % Save data for ploting
         my_alg('wR_all') = [my_alg('wR_all') my_alg('right encoder')];
         my_alg('wL_all') = [my_alg('wL_all') my_alg('left encoder')];
-        
+        %% End %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    end
 
 else

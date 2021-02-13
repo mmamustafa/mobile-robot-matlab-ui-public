@@ -43,12 +43,9 @@ if my_alg('is_first_time')
     
     % desired wheel velocity 
     my_alg('w_desired') = 5;
-    
-    % Proportional constant for wall following
-    my_alg('K') = 5;
-    
-    % Servo motor angle (1 radian to the left)
-    my_alg('servo motor') = 1;
+        
+    % Servo motor angle (0 radians = center)
+    my_alg('servo motor') = 0;
 end
 
 %% Loop code runs here
@@ -63,17 +60,12 @@ if time < my_alg('t_finish')    % Check for algorithm finish time
     if dt>my_alg('sampling_outer')  % Execute code when desired outer loop sampling time is reached
         my_alg('t_outer_loop') = tic;
         
-        sonar_dist = my_alg('sonar');
+        %% Add your outer loop code here %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        sonar_dist = my_alg('sonar');  % Read sonar distance from robot
         
-        % If a wall is found less than 1m away from the robot then follow it
-        if sonar_dist < 1
-            err_dist = 0.5 - sonar_dist;  % hold a constant distance of 0.5m to the wall
-            my_alg('wR_set') = my_alg('w_desired') - my_alg('K')*err_dist;
-            my_alg('wL_set') = my_alg('w_desired') + my_alg('K')*err_dist;
-        else
-            my_alg('wR_set') = 0;
-            my_alg('wL_set') = 0;
-        end
+        
+        
+        %% End %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
     end
     %%
     
@@ -83,21 +75,19 @@ if time < my_alg('t_finish')    % Check for algorithm finish time
     if dt>my_alg('sampling_inner')  % Execute code when desired inner loop sampling time is reached 
         my_alg('t_inner_loop') = tic;
 
+        %% Add your inner loop code here (replace with your controller)%%%
         % Right wheel controller %%%%%%%%%%%%%%%%%%%%
-        errR = my_alg('wR_set') - my_alg('right encoder');
-        
-        uR = my_alg('control_right').Control(errR,dt);
+        uR = my_alg('control_right').Control(my_alg('wR_set'),my_alg('right encoder'),dt);
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         % Left wheel controller %%%%%%%%%%%%%%%%%%%%%
-        errL = my_alg('wL_set') - my_alg('left encoder');
-        
-        uL = my_alg('control_left').Control(errL,dt);
+        uL = my_alg('control_left').Control(my_alg('wL_set'),my_alg('left encoder'),dt);
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         % Apply pwm signal
         my_alg('right motor') = uR;
         my_alg('left motor') = uL;
+        %% End %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end
     %%
 else

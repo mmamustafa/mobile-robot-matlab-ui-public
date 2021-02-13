@@ -42,11 +42,14 @@ if time < my_alg('t_finish')     % Check for algorithm finish time
     
     if dt>my_alg('t_sampling')   % execute code when desired sampling time is reached
         my_alg('t_loop') = tic;
-                
+        
+        %% Add your loop code here %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         
         % Apply pwm signal
         my_alg('right motor') = 0.7;
         my_alg('left motor') = 0.5;
 
+        % Save data for ploting
         my_alg('wR_all') = [my_alg('wR_all') my_alg('right encoder')];
         my_alg('wL_all') = [my_alg('wL_all') my_alg('left encoder')];
     end
