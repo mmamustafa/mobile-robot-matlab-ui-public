@@ -596,7 +596,45 @@ classdef RobotClass < dynamicprops
                 var_ind = var_ind + 2;  % index to next variable
             end
             % Update robot true pose (runs only in simulation)
+            pose_xy_old = obj.transformation(1:2, 4);   % needed for ramp
             obj.update_pose(robot_mode, d_t)
+            % Check ramps in simulation only
+            if ~obj.connected
+                v_robot = unit_vector(obj.transformation(1:2, 4) - pose_xy_old);  % needed for ramp
+                % Consider ramps and update active motors parameters
+                v_ramp = [0 0]';
+                if ~isempty(world.ramps)
+                    for i = 1:size(world.ramps, 3)
+                        alpha = deg2rad(20);    % ramp angle from xy-plane
+                        pts = world.ramps(:, :, i);
+                        if is_point_inside_simple_polygon(obj.transformation(1:2, 4), pts(:, [1 2 7 8]))
+                            v_ramp = unit_vector(pts(:, 2) - pts(:, 1));
+                            break
+                        elseif is_point_inside_simple_polygon(obj.transformation(1:2, 4), pts(:, [3 4 5 6]))
+                            v_ramp = unit_vector(pts(:, 3) - pts(:, 4));
+                            break
+                        end
+                    end
+                end
+                dot_product = dot(v_robot, v_ramp);
+                for i = obj.active_wheel_inds
+                    radius = obj.components_tree.get(i).shape.diameter / 2;
+                    parent = obj.components_tree.get(obj.components_tree.getparent(i));
+                    if ~strcmp(parent.type, 'dc-motor')
+                        continue
+                    end
+                    % Compute load torque
+                    if is_close(dot_product, 0)
+                        Tr = 0;
+                    else
+                        Tr = -9.81 * obj.mass * radius * sin(alpha) * dot_product / (parent.J * parent.gear_ratio);
+                    end
+                    % update motor parameters
+                    B = parent.B;
+                    B(1) = Tr;
+                    parent.set_property('B', B);
+                end
+            end
             % Update all sensors
             if nargout > 0
                 sensor_readings = containers.Map();

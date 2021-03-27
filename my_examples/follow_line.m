@@ -8,7 +8,7 @@ function my_alg = follow_line(my_alg, robot)
 if my_alg('is_first_time')
     % DC motor has 2 signal modes {'omega_setpoint', 'voltage_pwm'}. Place
     % your preference here:
-    my_alg('dc_motor_signal_mode') = 'omega_setpoint';
+    my_alg('dc_motor_signal_mode') = 'voltage_pwm';
     
     % Initialization usually creates memory, therefore the first few
     % iterations require longer processing time. For applications where
@@ -25,12 +25,12 @@ if my_alg('ignore_iteration_counter') == my_alg('n_iteration_to_ignore')
     
     time = toc(my_alg('tic'));      % Get time since start of session
     if time < 60
-        omega_max = 10;  % max angular velocity of the wheel
+        voltage_max = 0.7;  % max voltage of the motor
         expected_value_normalized = my_alg('reflectance');
         
         % Drive
-        my_alg('right motor') = omega_max * (1 + expected_value_normalized);
-        my_alg('left motor') = omega_max * (1 - expected_value_normalized);
+        my_alg('right motor') = voltage_max * (1 + expected_value_normalized);
+        my_alg('left motor') = voltage_max * (1 - expected_value_normalized);
     else
         % Stop motors
         my_alg('right motor') = 0;
@@ -38,6 +38,8 @@ if my_alg('ignore_iteration_counter') == my_alg('n_iteration_to_ignore')
         % Stop session
         my_alg('is_done') = true;
     end
+    
+    mean([my_alg('right encoder') my_alg('left encoder')])
     
     %[my_alg('left encoder') my_alg('right encoder') my_alg('reflectance')]
     
